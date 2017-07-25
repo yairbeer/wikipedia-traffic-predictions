@@ -17,6 +17,13 @@ class DataHandler:
             prediction_array[i, :] = np.nanmean(line.values)
         self.test1.iloc[:, :] = prediction_array
 
+    def predict_site_median(self, start_date, end_date):
+        self.test1 = self.generate_test1(start_date, end_date)
+        prediction_array = np.zeros(self.test1.shape)
+        for i, line in enumerate(self.train):
+            prediction_array[i, :] = np.nanmedian(line.values)
+        self.test1.iloc[:, :] = prediction_array
+
     def generate_test1(self, start_date, end_date):
         return pd.DataFrame(
             data=0, index=self.train.index, columns=self.generate_dates_columns(start_date, end_date))

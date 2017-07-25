@@ -1,9 +1,11 @@
 import pandas as pd
 
+from keyHandler import KeyHandler
+
 
 class SubmissionHandler:
-    def __init__(self, submission_filename):
-        self.submission = pd.DataFrame.from_csv(key_filename)
+    def __init__(self, submission_filename, key_handler: KeyHandler):
+        self.submission = pd.DataFrame.from_csv(submission_filename)
 
 # Id,Visits
 # bf4edcf969af,0
