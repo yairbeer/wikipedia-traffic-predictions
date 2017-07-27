@@ -1,25 +1,38 @@
 import pandas as pd
+import numpy as np
 
 from keyHandler import KeyHandler
 
 
 class SubmissionHandler:
     def __init__(self, submission_filename, key_handler: KeyHandler):
+        print('reading submission format')
         self.submission = pd.DataFrame.from_csv(submission_filename)
         self.key_handler = key_handler
 
     def save_prediction(self, test: pd.DataFrame, filename):
+        print('saving submission')
         dates_hash = self.hash_dict(test.columns.values)
         pages_hash = self.hash_dict(test.index.values)
-        for line in self.key_handler.key:
-            value = test.iat[pages_hash[line['page']], dates_hash[line['date']]]
-            self.submission.at[line['key']] = value
+
+        ids = np.zeros(self.key_handler.key.shape[0]).astype(str)
+        visits = np.zeros(self.key_handler.key.shape[0]).astype(int)
+
+        for index, row in self.key_handler.key.iterrows():
+            if not(index % 100000):
+                print(index)
+            ids[index] = row['Id']
+            visits[index] = test.iat[pages_hash[row['Page']], dates_hash[row['Date']]]
+        self.submission.index = ids
+        self.submission['Visits'] = visits
+        self.submission = pd.DataFrame.fillna(self.submission, value=0)
+        self.submission.index.name = 'Id'
         self.submission.to_csv(filename)
 
     @staticmethod
     def hash_dict(values):
         hash_dict = {}
-        for i, value in values:
+        for i, value in enumerate(values):
             hash_dict[value] = i
         return hash_dict
 

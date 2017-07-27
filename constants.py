@@ -1,1 +1,3 @@
 DATE_FORMAT = "%Y-%m-%d"
+START_DATE_1 = '2017-01-01'
+END_DATE_1 = '2017-03-01'
