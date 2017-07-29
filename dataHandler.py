@@ -16,16 +16,43 @@ class DataHandler:
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
         for i, line in enumerate(self.train.values):
-            prediction_array[i, :] = np.nanmean(line).astype(int)
+            prediction_array[i, :] = 0 if np.all(np.isnan(line)) else np.nanmean(line).astype(int)
         self.test1.iloc[:, :] = prediction_array
-        print(self.test1)
 
     def predict_site_median(self, start_date, end_date):
         print('predicting median')
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
         for i, line in enumerate(self.train.values):
-            prediction_array[i, :] = np.nanmedian(line).astype(int)
+            prediction_array[i, :] = 0 if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
+        self.test1.iloc[:, :] = prediction_array
+
+    def predict_site_best_smape(self, start_date, end_date, n_tries):
+        print('predicting by best smape')
+        self.test1 = self._generate_test1(start_date, end_date)
+        prediction_array = np.zeros(self.test1.shape)
+        for i, row in enumerate(self.train.values):
+            if np.all(np.isnan(row)):
+                prediction_array[i, :] = 0
+            else:
+
+                max_limit_search = np.nanmedian(row).astype(int) * 3
+                if n_tries > max_limit_search:
+                    search_values = np.arange(max_limit_search)
+                else:
+                    search_values = np.linspace(0, max_limit_search, n_tries, endpoint=True)
+                row = row[np.logical_not(np.isnan(row))]
+
+                min_smape = 200
+                best_value = 0
+                for value in search_values:
+                    smape_result = self.smape(row, int(value))
+                    if smape_result < min_smape:
+                        min_smape = smape_result
+                        best_value = int(value)
+
+                prediction_array[i, :] = best_value
+
         self.test1.iloc[:, :] = prediction_array
 
     def replace_nan(self, value=0):
@@ -45,6 +72,13 @@ class DataHandler:
             dates.append(current_date.strftime(DATE_FORMAT))
             current_date = current_date + datetime.timedelta(days=1)
         return dates
+
+    @staticmethod
+    def smape(y_true, y_pred):
+        denominator = (np.abs(y_true) + np.abs(y_pred)) / 200.0
+        diff = np.abs(y_true - y_pred) / denominator
+        diff[denominator == 0] = 0.0
+        return np.nanmean(diff)
 
     # @staticmethod
     # def _parse_dates(column_names):
