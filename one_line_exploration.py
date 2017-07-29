@@ -89,6 +89,14 @@ def main():
              train_dates[train_n:], linear_date_prediction, 'b--')
     plt.show()
 
+    # Median memory
+    moving_median_result = []
+    for i in range(train_n-1):
+        moving_median_result.append(smape(train_y[train_n:], np.median(train_y[i:train_n])))
+
+    plt.plot(range(len(moving_median_result)), moving_median_result)
+    plt.show()
+
     # # Days of the week
     # train_day_of_week = pd.Series(train_day_of_week)
     # train_day_of_week = pd.get_dummies(train_day_of_week)
@@ -98,16 +106,16 @@ def main():
     # linear_weekday_prediction = lm_day_of_week.predict(train_day_of_week.values)
     # print(lm_day_of_week.coef_, lm_day_of_week.intercept_, lm_day_of_week.residues_)
 
-    data_series = pd.Series(train_y)
-    autocorrelation_plot(data_series, n_samples=20)
-    plt.show()
-    #
+    # data_series = pd.Series(train_y)
+    # autocorrelation_plot(data_series, n_samples=20)
+    # plt.show()
+
     # plt.plot(train_dates, train_y)
     # plt.show()
 
     print('SMAPE results')
-    print('Mean ', smape(train_y, mean_result))
-    print('Median ', smape(train_y, median_result))
+    print('Mean ', smape(train_y[train_n:], mean_result))
+    print('Median ', smape(train_y[train_n:], median_result))
     print('Linear regression (days) ', smape(train_y[train_n:], linear_date_prediction))
     # print('Linear regression (weekday) ', smape(train_y, linear_weekday_prediction + linear_date_prediction))
 

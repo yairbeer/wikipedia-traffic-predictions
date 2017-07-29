@@ -11,19 +11,21 @@ class DataHandler:
         self.train = pd.DataFrame.from_csv(train_filename)
         self.test1 = None
 
-    def predict_site_mean(self, start_date, end_date):
+    def predict_site_mean(self, start_date, end_date, days_train=None):
         print('predicting mean')
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
-        for i, line in enumerate(self.train.values):
+        train = self.train.values[:, -days_train:]
+        for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else np.nanmean(line).astype(int)
         self.test1.iloc[:, :] = prediction_array
 
-    def predict_site_median(self, start_date, end_date):
+    def predict_site_median(self, start_date, end_date, days_train=None):
         print('predicting median')
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
-        for i, line in enumerate(self.train.values):
+        train = self.train.values[:, -days_train:]
+        for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
         self.test1.iloc[:, :] = prediction_array
 
