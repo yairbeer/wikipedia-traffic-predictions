@@ -6,34 +6,31 @@ from constants import DATE_FORMAT
 
 
 class DataHandler:
-    def __init__(self, train_filename):
+    def __init__(self, train_filename, n_evaluation=False):
         print('reading train')
         self.train = pd.DataFrame.from_csv(train_filename)
-        self.test1 = None
+        self.test = None
 
-    def predict_site_mean(self, start_date, end_date, days_train=None):
+    def predict_site_mean(self, days_train=None):
         print('predicting mean')
-        self.test1 = self._generate_test1(start_date, end_date)
-        prediction_array = np.zeros(self.test1.shape)
+        prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
         for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else np.nanmean(line).astype(int)
-        self.test1.iloc[:, :] = prediction_array
+        self.test.iloc[:, :] = prediction_array
 
-    def predict_site_median(self, start_date, end_date, days_train=None):
+    def predict_site_median(self, days_train=None):
         print('predicting median')
-        self.test1 = self._generate_test1(start_date, end_date)
-        prediction_array = np.zeros(self.test1.shape)
+        prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
 
         for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
-        self.test1.iloc[:, :] = prediction_array
+        self.test.iloc[:, :] = prediction_array
 
-    def predict_site_best_smape(self, start_date, end_date, n_tries, days_train=None):
+    def predict_site_best_smape(self, n_tries, days_train=None):
         print('predicting by best smape')
-        self.test1 = self._generate_test1(start_date, end_date)
-        prediction_array = np.zeros(self.test1.shape)
+        prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
         for i, row in enumerate(train):
             if np.all(np.isnan(row)):
@@ -57,13 +54,13 @@ class DataHandler:
 
                 prediction_array[i, :] = best_value
 
-        self.test1.iloc[:, :] = prediction_array
+        self.test.iloc[:, :] = prediction_array
 
     def replace_nan(self, value=0):
         print('replacing train NaNs to ' + str(value))
         self.train = pd.DataFrame.fillna(self.train, value=value)
 
-    def _generate_test1(self, start_date, end_date):
+    def generate_test(self, start_date, end_date):
         return pd.DataFrame(
             data=0, index=self.train.index, columns=self._generate_dates_columns(start_date, end_date))
 
