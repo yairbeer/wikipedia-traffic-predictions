@@ -18,9 +18,12 @@ def main():
     #
     # data_handler.predict_site_best_smape(START_DATE_1, END_DATE_1, 50)
     # submission_handler.save_prediction(data_handler.test1, 'predictions_1/train_best_smape_n=50_no_nans.csv')
+    #
+    # data_handler.predict_site_median(START_DATE_1, END_DATE_1, days_train=50)
+    # submission_handler.save_prediction(data_handler.test1, 'predictions_1/median_50_days_no_nans.csv')
 
-    data_handler.predict_site_median(START_DATE_1, END_DATE_1, days_train=350)
-    submission_handler.save_prediction(data_handler.test1, 'predictions_1/median_350_days_no_nans.csv')
+    data_handler.predict_site_best_smape(START_DATE_1, END_DATE_1, 50, days_train=50)
+    submission_handler.save_prediction(data_handler.test1, 'predictions_1/smape_50_days_no_nans.csv')
 
     print('completed successfully')
 

@@ -15,7 +15,7 @@ class DataHandler:
         print('predicting mean')
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
-        train = self.train.values[:, -days_train:]
+        train = self.train.values[:, -days_train:] if days_train else self.train.values
         for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else np.nanmean(line).astype(int)
         self.test1.iloc[:, :] = prediction_array
@@ -24,16 +24,18 @@ class DataHandler:
         print('predicting median')
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
-        train = self.train.values[:, -days_train:]
+        train = self.train.values[:, -days_train:] if days_train else self.train.values
+
         for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
         self.test1.iloc[:, :] = prediction_array
 
-    def predict_site_best_smape(self, start_date, end_date, n_tries):
+    def predict_site_best_smape(self, start_date, end_date, n_tries, days_train=None):
         print('predicting by best smape')
         self.test1 = self._generate_test1(start_date, end_date)
         prediction_array = np.zeros(self.test1.shape)
-        for i, row in enumerate(self.train.values):
+        train = self.train.values[:, -days_train:] if days_train else self.train.values
+        for i, row in enumerate(train):
             if np.all(np.isnan(row)):
                 prediction_array[i, :] = 0
             else:
