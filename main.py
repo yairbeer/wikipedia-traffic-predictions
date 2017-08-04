@@ -32,8 +32,8 @@ def main():
     key_handler = KeyHandler('key_1.csv')
     submission_handler = SubmissionHandler('sample_submission_1.csv', key_handler)
 
-    data_handler.predict_site_median(days_train=50)
-    submission_handler.save_prediction(data_handler.test, 'predictions_1/median_50_days_nans_to_300.csv', fillna=300)
+    data_handler.predict_site_median(days_train=50, replace_nan=300)
+    submission_handler.save_prediction(data_handler.test, 'predictions_1/median_50_days_nans_to_300.csv')
 
     print('completed successfully')
 

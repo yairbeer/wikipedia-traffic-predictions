@@ -10,7 +10,7 @@ class SubmissionHandler:
         self.submission = pd.DataFrame.from_csv(submission_filename)
         self.key_handler = key_handler
 
-    def save_prediction(self, test: pd.DataFrame, filename, fillna):
+    def save_prediction(self, test: pd.DataFrame, filename):
         print('saving submission')
         dates_hash = self.hash_dict(test.columns.values)
         pages_hash = self.hash_dict(test.index.values)
@@ -25,7 +25,6 @@ class SubmissionHandler:
             visits[index] = test.iat[pages_hash[row['Page']], dates_hash[row['Date']]]
         self.submission.index = ids
         self.submission['Visits'] = visits
-        self.submission = pd.DataFrame.fillna(self.submission, value=fillna)
         self.submission.index.name = 'Id'
         self.submission.to_csv(filename)
 

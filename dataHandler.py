@@ -29,21 +29,17 @@ class DataHandler:
         print('predicting median')
         prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
-        if replace_nan is not None:
-            train[np.isnan(train)] = replace_nan
         for i, line in enumerate(train):
-            prediction_array[i, :] = 0 if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
+            prediction_array[i, :] = replace_nan if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
         self.test.iloc[:, :] = prediction_array
 
     def predict_site_best_smape(self, n_tries, days_train=None, replace_nan=None):
         print('predicting by best smape')
         prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
-        if replace_nan is not None:
-            train[np.isnan(train)] = replace_nan
         for i, row in enumerate(train):
             if np.all(np.isnan(row)):
-                prediction_array[i, :] = 0
+                prediction_array[i, :] = replace_nan
             else:
 
                 max_limit_search = np.nanmedian(row).astype(int) * 3
