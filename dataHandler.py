@@ -6,10 +6,16 @@ from constants import DATE_FORMAT
 
 
 class DataHandler:
-    def __init__(self, train_filename, n_evaluation=False):
+    def __init__(self, train_filename):
         print('reading train')
         self.train = pd.DataFrame.from_csv(train_filename)
         self.test = None
+        self.evaluation_y = None
+
+    def generate_evaluation(self, days):
+        self.evaluation_y = self.train.iloc[:, -1*days:]
+        self.train = self.train.iloc[:, :-1*days]
+        self.generate_test(self.evaluation_y.columns.values[0], self.evaluation_y.columns.values[-1])
 
     def predict_site_mean(self, days_train=None):
         print('predicting mean')
@@ -19,19 +25,22 @@ class DataHandler:
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else np.nanmean(line).astype(int)
         self.test.iloc[:, :] = prediction_array
 
-    def predict_site_median(self, days_train=None):
+    def predict_site_median(self, days_train=None, replace_nan=None):
         print('predicting median')
         prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
-
+        if replace_nan is not None:
+            train[np.isnan(train)] = replace_nan
         for i, line in enumerate(train):
             prediction_array[i, :] = 0 if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
         self.test.iloc[:, :] = prediction_array
 
-    def predict_site_best_smape(self, n_tries, days_train=None):
+    def predict_site_best_smape(self, n_tries, days_train=None, replace_nan=None):
         print('predicting by best smape')
         prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
+        if replace_nan is not None:
+            train[np.isnan(train)] = replace_nan
         for i, row in enumerate(train):
             if np.all(np.isnan(row)):
                 prediction_array[i, :] = 0
@@ -61,7 +70,7 @@ class DataHandler:
         self.train = pd.DataFrame.fillna(self.train, value=value)
 
     def generate_test(self, start_date, end_date):
-        return pd.DataFrame(
+        self.test = pd.DataFrame(
             data=0, index=self.train.index, columns=self._generate_dates_columns(start_date, end_date))
 
     @staticmethod
@@ -78,7 +87,7 @@ class DataHandler:
     def smape(y_true, y_pred):
         denominator = (np.abs(y_true) + np.abs(y_pred)) / 200.0
         diff = np.abs(y_true - y_pred) / denominator
-        diff[denominator == 0] = 0.0
+        diff[denominator == 0] = 0
         return np.nanmean(diff)
 
     # @staticmethod
