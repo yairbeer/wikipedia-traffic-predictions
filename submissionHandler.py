@@ -16,7 +16,7 @@ class SubmissionHandler:
         pages_hash = self.hash_dict(test.index.values)
 
         ids = np.zeros(self.key_handler.key.shape[0]).astype(str)
-        visits = np.zeros(self.key_handler.key.shape[0]).astype(int)
+        visits = np.zeros(self.key_handler.key.shape[0])
 
         for index, row in self.key_handler.key.iterrows():
             if not(index % 100000):
@@ -25,6 +25,7 @@ class SubmissionHandler:
             visits[index] = test.iat[pages_hash[row['Page']], dates_hash[row['Date']]]
         self.submission.index = ids
         self.submission['Visits'] = visits
+        self.submission.Visits = self.submission.Visits.round(2)
         self.submission.index.name = 'Id'
         self.submission.to_csv(filename)
 

@@ -17,21 +17,68 @@ class DataHandler:
         self.train = self.train.iloc[:, :-1*days]
         self.generate_test(self.evaluation_y.columns.values[0], self.evaluation_y.columns.values[-1])
 
-    def predict_site_mean(self, days_train=None):
-        print('predicting mean')
-        prediction_array = np.zeros(self.test.shape)
+    def predict_from_1d(self, arr, replace_nan=None):
+        arr[np.isnan(arr)] = replace_nan
+        arr = np.repeat(arr.reshape((-1, 1)), self.test.shape[1], axis=1)
+        self.test.iloc[:, :] = arr
+
+    def predict_site_mean(self, days_train=None, replace_nan=None):
+        print('predicting median')
         train = self.train.values[:, -days_train:] if days_train else self.train.values
-        for i, line in enumerate(train):
-            prediction_array[i, :] = 0 if np.all(np.isnan(line)) else np.nanmean(line).astype(int)
+        prediction_array = np.nanmean(train, axis=1)
+        prediction_array[np.isnan(prediction_array)] = replace_nan
+        prediction_array = np.repeat(prediction_array.reshape((-1, 1)), self.test.shape[1], axis=1)
         self.test.iloc[:, :] = prediction_array
 
     def predict_site_median(self, days_train=None, replace_nan=None):
         print('predicting median')
-        prediction_array = np.zeros(self.test.shape)
         train = self.train.values[:, -days_train:] if days_train else self.train.values
-        for i, line in enumerate(train):
-            prediction_array[i, :] = replace_nan if np.all(np.isnan(line)) else (0.5 + np.nanmedian(line)).astype(int)
+        prediction_array = np.nanmedian(train, axis=1)
+        prediction_array[np.isnan(prediction_array)] = replace_nan
+        prediction_array = np.repeat(prediction_array.reshape((-1, 1)), self.test.shape[1], axis=1)
         self.test.iloc[:, :] = prediction_array
+
+    def predict_site_log_mean(self, days_train=None, replace_nan=None):
+        print('predicting log mean')
+        train = self.train.values[:, -days_train:] if days_train else self.train.values
+        train = np.log(1+train)
+        prediction_array = np.nanmean(train, axis=1)
+        prediction_array[np.isnan(prediction_array)] = replace_nan
+        prediction_array = np.exp(prediction_array) - 1
+        prediction_array = np.repeat(prediction_array.reshape((-1, 1)), self.test.shape[1], axis=1)
+        self.test.iloc[:, :] = prediction_array
+
+    def calculate_momentum(self, alpha, trend):
+        print('calculating momentum')
+        arr = self.train.values
+        last_count = arr[:, 1]
+        count_nans = np.isnan(last_count)
+        last_count[count_nans] = arr[count_nans, 0]
+
+        medians = np.nanmedian(arr, axis=1)
+        count_nans = np.isnan(last_count)
+        last_count[count_nans] = medians[count_nans]
+
+        last_momentum = arr[:, 1] - arr[:, 0]
+        count_nans = np.isnan(last_momentum)
+        last_momentum[count_nans] = 0
+
+        count = last_count
+        momentum = last_momentum
+
+        for i in range(2, arr.shape[1]):
+            count = alpha * arr[:, i] + (1 - alpha) * (last_count + last_momentum)
+            count_nans = np.isnan(arr[:, i])
+            count[count_nans] = last_count[count_nans]
+
+            momentum = trend * (count - last_count) + (1 - trend) * last_momentum
+            count_nans = np.isnan(arr[:, i])
+            momentum[count_nans] = last_momentum[count_nans]
+
+            last_count = count
+            last_momentum = momentum
+
+        return count, momentum
 
     def predict_site_best_smape(self, n_tries, days_train=None, replace_nan=None):
         print('predicting by best smape')

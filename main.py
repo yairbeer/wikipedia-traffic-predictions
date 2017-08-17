@@ -15,12 +15,14 @@ def main():
     # print('Start CV')
     # data_handler = DataHandler('train_1.csv')
     # data_handler.generate_evaluation(90)
+    # data_handler.predict_site_median(50, replace_nan=300)
+    # print('Reference median: SMAPE ', data_handler.smape(data_handler.evaluation_y.values, data_handler.test.values))
+    # print()
     # for train_days in range(10, 110, 10):
     #     print(train_days, ' days')
-    #     data_handler.predict_site_median(train_days, replace_nan=0)
-    #     print('Median: SMAPE ', data_handler.smape(data_handler.evaluation_y.values, data_handler.test.values))
-    #     data_handler.predict_site_best_smape(10, train_days)
-    #     print('Best SMAPE: SMAPE ', data_handler.smape(data_handler.evaluation_y, data_handler.test))
+    #     data_handler.predict_site_log_mean(train_days, replace_nan=300)
+    #     print('Log Mean: SMAPE ', data_handler.smape(data_handler.evaluation_y.values, data_handler.test.values))
+
     """
     Median is the best for the last 10 days for the range(10, 60, 10)
     """
@@ -32,8 +34,8 @@ def main():
     key_handler = KeyHandler('key_1.csv')
     submission_handler = SubmissionHandler('sample_submission_1.csv', key_handler)
 
-    data_handler.predict_site_median(days_train=50, replace_nan=300)
-    submission_handler.save_prediction(data_handler.test, 'predictions_1/median_50_days_nans_to_300.csv')
+    data_handler.predict_site_log_mean(50, replace_nan=300)
+    submission_handler.save_prediction(data_handler.test, 'predictions_1/median_50_days_floats.csv')
 
     print('completed successfully')
 
